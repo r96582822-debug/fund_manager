@@ -4,27 +4,64 @@ const Transaction = require('../models/Transaction');
 
 // GET all
 router.get('/', async (req, res) => {
-  const data = await Transaction.find().sort({ createdAt: -1 });
-  res.json(data);
+  try {
+    const data = await Transaction.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch transactions" });
+  }
 });
 
 // ADD
 router.post('/', async (req, res) => {
-  const txn = new Transaction(req.body);
-  await txn.save();
-  res.json(txn);
+  try {
+    const { type, amount, desc, cat, date } = req.body;
+
+    // ✅ VALIDATION
+    if (!type || !amount || !desc || !cat) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const txn = new Transaction({
+      type,
+      amount,
+      desc,
+      cat,
+      date: date || new Date().toISOString(),
+      note: req.body.note || ""
+    });
+
+    await txn.save();
+
+    res.json(txn);
+
+  } catch (err) {
+    console.error("POST ERROR:", err);
+    res.status(500).json({ error: "Failed to add transaction" });
+  }
 });
 
 // DELETE one
 router.delete('/:id', async (req, res) => {
-  await Transaction.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+  try {
+    await Transaction.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Delete failed" });
+  }
 });
 
 // CLEAR ALL
 router.delete('/', async (req, res) => {
-  await Transaction.deleteMany({});
-  res.json({ success: true });
+  try {
+    await Transaction.deleteMany({});
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Clear failed" });
+  }
 });
 
 module.exports = router;
