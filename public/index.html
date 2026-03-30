@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flo — Personal Finance</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-logo">Flo</span>
+      <span class="brand-tag">finance tracker</span>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-page="dashboard">
+        <span class="nav-icon">◈</span> Dashboard
+      </button>
+      <button class="nav-btn" data-page="add">
+        <span class="nav-icon">＋</span> Add Transaction
+      </button>
+      <button class="nav-btn" data-page="history">
+        <span class="nav-icon">≡</span> History
+      </button>
+      <button class="nav-btn" data-page="summary">
+        <span class="nav-icon">◷</span> Monthly Summary
+      </button>
+    </nav>
+
+    <div class="sidebar-balance">
+      <div class="sb-label">NET BALANCE</div>
+      <div class="sb-amount" id="sidebar-net">₹0.00</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>v1.0 · local storage</div>
+      <div>no data leaves device</div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN CONTENT ─── -->
+  <main class="main">
+
+    <!-- DASHBOARD PAGE -->
+    <section class="page active" id="page-dashboard">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-sub" id="current-month-label">Loading…</p>
+        </div>
+        <div class="header-tag">LIVE</div>
+      </header>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card income-card">
+          <div class="stat-label">TOTAL INCOME</div>
+          <div class="stat-value" id="stat-income">₹0.00</div>
+          <div class="stat-bar"><div class="stat-bar-fill income-fill" id="income-bar"></div></div>
+        </div>
+        <div class="stat-card expense-card">
+          <div class="stat-label">TOTAL EXPENSES</div>
+          <div class="stat-value" id="stat-expense">₹0.00</div>
+          <div class="stat-bar"><div class="stat-bar-fill expense-fill" id="expense-bar"></div></div>
+        </div>
+        <div class="stat-card net-card">
+          <div class="stat-label">NET SAVINGS</div>
+          <div class="stat-value" id="stat-net">₹0.00</div>
+          <div class="stat-savings-rate" id="savings-rate">— % savings rate</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <span class="chart-title">Monthly Overview</span>
+            <span class="chart-badge">6 months</span>
+          </div>
+          <canvas id="barChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Spending by Category</span>
+          </div>
+          <canvas id="doughnutChart" height="200"></canvas>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="section-head">
+        <span>Recent Transactions</span>
+        <button class="text-btn" data-page="history" onclick="navigate('history')">View all →</button>
+      </div>
+      <div class="txn-list" id="recent-list"></div>
+    </section>
+
+    <!-- ADD TRANSACTION PAGE -->
+    <section class="page" id="page-add">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Add Transaction</h1>
+          <p class="page-sub">Record income or expense</p>
+        </div>
+      </header>
+
+      <div class="form-shell">
+        <!-- Type Toggle -->
+        <div class="type-toggle">
+          <button class="type-btn active" id="btn-expense" onclick="setType('expense')">
+            <span>↓</span> Expense
+          </button>
+          <button class="type-btn" id="btn-income" onclick="setType('income')">
+            <span>↑</span> Income
+          </button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">AMOUNT</label>
+            <div class="amount-input-wrap">
+              <span class="currency-sym">₹</span>
+              <input type="number" id="txn-amount" class="form-input amount-input" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">DESCRIPTION</label>
+            <input type="text" id="txn-desc" class="form-input" placeholder="e.g. Monthly rent"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CATEGORY</label>
+            <select id="txn-cat" class="form-input form-select">
+              <option value="">Select category</option>
+              <optgroup label="Expenses">
+                <option value="Food & Dining">🍜 Food & Dining</option>
+                <option value="Transport">🚗 Transport</option>
+                <option value="Shopping">🛍️ Shopping</option>
+                <option value="Housing">🏠 Housing</option>
+                <option value="Health">💊 Health</option>
+                <option value="Entertainment">🎬 Entertainment</option>
+                <option value="Education">📚 Education</option>
+                <option value="Utilities">⚡ Utilities</option>
+                <option value="Other">📦 Other</option>
+              </optgroup>
+              <optgroup label="Income">
+                <option value="Salary">💼 Salary</option>
+                <option value="Freelance">💻 Freelance</option>
+                <option value="Investment">📈 Investment</option>
+                <option value="Gift">🎁 Gift</option>
+                <option value="Other Income">💰 Other Income</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">DATE</label>
+            <input type="date" id="txn-date" class="form-input"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">NOTE <span class="opt">(optional)</span></label>
+            <input type="text" id="txn-note" class="form-input" placeholder="Extra details…"/>
+          </div>
+        </div>
+
+        <button class="submit-btn" onclick="addTransaction()">
+          <span id="submit-label">Add Expense</span>
+          <span class="submit-arrow">→</span>
+        </button>
+
+        <div class="form-msg" id="form-msg"></div>
+      </div>
+    </section>
+
+    <!-- HISTORY PAGE -->
+    <section class="page" id="page-history">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">History</h1>
+          <p class="page-sub">All your transactions</p>
+        </div>
+        <div class="filter-row">
+          <select class="filter-select" id="filter-type" onchange="renderHistory()">
+            <option value="all">All Types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <select class="filter-select" id="filter-month" onchange="renderHistory()">
+            <option value="all">All Months</option>
+          </select>
+          <button class="icon-btn danger" onclick="clearAll()" title="Clear all">✕ Clear All</button>
+        </div>
+      </header>
+      <div class="txn-list full" id="history-list"></div>
+    </section>
+
+    <!-- SUMMARY PAGE -->
+    <section class="page" id="page-summary">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Monthly Summary</h1>
+          <p class="page-sub">Month-by-month breakdown</p>
+        </div>
+        <div class="month-nav">
+          <button class="icon-btn" onclick="changeMonth(-1)">←</button>
+          <span class="month-label" id="summary-month-label">—</span>
+          <button class="icon-btn" onclick="changeMonth(1)">→</button>
+        </div>
+      </header>
+
+      <div class="summary-hero">
+        <div class="sh-block income">
+          <div class="sh-label">INCOME</div>
+          <div class="sh-value" id="sum-income">₹0</div>
+        </div>
+        <div class="sh-divider">vs</div>
+        <div class="sh-block expense">
+          <div class="sh-label">EXPENSES</div>
+          <div class="sh-value" id="sum-expense">₹0</div>
+        </div>
+        <div class="sh-divider">=</div>
+        <div class="sh-block net">
+          <div class="sh-label">SAVINGS</div>
+          <div class="sh-value" id="sum-net">₹0</div>
+        </div>
+      </div>
+
+      <div class="summary-body">
+        <div class="cat-breakdown" id="cat-breakdown"></div>
+        <div class="chart-card">
+          <div class="chart-header"><span class="chart-title">This Month's Spending</span></div>
+          <canvas id="summaryPie" height="220"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── CHATBOT ─── -->
+  <div class="chat-bubble" id="chat-bubble" onclick="toggleChat()">
+    <span class="chat-bubble-icon">💬</span>
+    <span class="chat-unread" id="chat-unread" style="display:none">1</span>
+  </div>
+
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-avatar">F</div>
+        <div>
+          <div class="chat-name">Flo AI</div>
+          <div class="chat-status">● online</div>
+        </div>
+      </div>
+      <button class="chat-close" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg bot">
+        <div class="msg-bubble">
+          Hey! 👋 I'm <b>Flo</b>, your finance assistant. Ask me anything — about your spending, savings, budgeting tips, or anything money-related!
+        </div>
+        <div class="msg-time">Just now</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" class="chat-input" placeholder="Ask Flo anything…" onkeydown="if(event.key==='Enter') sendChat()"/>
+      <button class="chat-send" onclick="sendChat()">↑</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
