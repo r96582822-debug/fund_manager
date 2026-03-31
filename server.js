@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+
 const app = express();
 
 // Middleware
@@ -10,18 +11,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// MongoDB
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.error("MongoDB connection error:", err.message));
 
 // Routes
 app.use('/api/transactions', require('./routes/transactions'));
 
-// Gemini Setup
+// Gemini AI Setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Chat API
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, summary } = req.body;
@@ -51,11 +51,11 @@ Give short, practical, human-like advice (2-4 lines max).
     res.json({ reply });
 
   } catch (err) {
-    console.log(err);
+    console.error("AI ERROR:", err.message);
     res.json({ reply: "⚠️ AI error. Check API key." });
   }
 });
 
-// Start server
+// Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server successfully running at: http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
